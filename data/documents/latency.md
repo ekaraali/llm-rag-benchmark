@@ -1,0 +1,2 @@
+# Latency and cost
+Retrieving more documents raises input token usage and can increase generation latency and cost. Reranking can increase retrieval quality while adding compute and latency. Optimizing an LLM application often requires balancing correctness, faithfulness, response time, and cost rather than maximizing one score in isolation. Measure median and tail latency when sample sizes allow.

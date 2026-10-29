@@ -1,0 +1,2 @@
+# Generation parameters
+Temperature scales the logits before sampling and changes randomness. Top-p nucleus sampling restricts generation to a dynamically selected set of tokens whose cumulative probability reaches p. Setting temperature to zero is commonly used for deterministic-style decoding but repeatability is not guaranteed for every hosted provider. Maximum output tokens caps generated text and can truncate long answers. Some reasoning-oriented APIs do not allow temperature control.

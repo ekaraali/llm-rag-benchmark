@@ -1,0 +1,7 @@
+pipeline,top_k_run,n,reference_phrase_match,retrieval_hit,citation_precision_proxy,mean_latency_s,review_correct,review_partial,review_incorrect,review_provenance
+direct,3,16,0.0625,0,0,5.426,3,3,10,Human-validated
+dense_rag,3,16,0.625,1,0.5625,6.0631,7,5,4,Human-validated
+hybrid_reasoning_rag,3,16,0.625,1,0.625,4.7473,8,5,3,Human-validated
+direct,5,16,0.0625,0,0,12.4445,3,3,10,Human-validated
+dense_rag,5,16,0.5625,1,0.6875,10.55,7,7,2,Human-validated
+hybrid_reasoning_rag,5,16,0.6875,1,0.625,7.7383,6,8,2,Human-validated

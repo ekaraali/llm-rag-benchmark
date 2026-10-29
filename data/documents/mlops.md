@@ -1,0 +1,2 @@
+# LLMOps and production
+Experiment tracking records configurations, metrics, code versions, and artifacts for reproducibility. MLflow can track experiment runs and log artifacts. CI smoke tests validate code paths but are not equivalent to end-to-end LLM quality tests. For production, capture request latency, token usage, failures, and traces; do not commit API keys or proprietary datasets to public repositories.

@@ -1,0 +1,29 @@
+# Environment variables and secrets
+.env
+.env.*
+!.env.example
+
+# Python virtual environments
+.venv/
+venv/
+
+# Python cache and test files
+__pycache__/
+.pytest_cache/
+*.pyc
+
+# Local experiment tracking
+mlruns/
+mlflow.db
+
+# Raw experiment outputs
+results/*
+!results/.gitkeep
+
+# macOS system files
+.DS_Store
+**/.DS_Store
+
+# IDE-specific files
+.vscode/
+.idea/

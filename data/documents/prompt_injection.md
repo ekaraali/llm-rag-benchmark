@@ -1,0 +1,2 @@
+# Retrieval security
+Prompt injection occurs when untrusted content attempts to change a model's instructions. Retrieved documents are task data, not authoritative instructions. Systems should clearly separate instructions from retrieved text and avoid following commands embedded in source passages. Evaluations can include malicious retrieved passages and measure whether the assistant ignores injected directions.

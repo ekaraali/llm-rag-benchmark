@@ -1,0 +1,2 @@
+# Chunking guidance
+Smaller chunks such as 256 tokens can isolate facts but fragment multi-paragraph evidence. Larger chunks such as 1024 tokens preserve context but may introduce irrelevant details. Chunk overlap is used to reduce information loss at boundaries. A common starting overlap is 10 to 20 percent of chunk size. Chunking should be evaluated with retrieval metrics and answer quality, not optimized solely by vector similarity.

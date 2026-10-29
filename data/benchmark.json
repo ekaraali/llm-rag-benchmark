@@ -1,0 +1,130 @@
+[
+  {
+    "id": 1,
+    "question": "What problem can 256-token chunks cause?",
+    "reference_answer": "fragment multi-paragraph evidence",
+    "relevant_docs": [
+      "chunking.md"
+    ]
+  },
+  {
+    "id": 2,
+    "question": "What is a common starting percentage for chunk overlap?",
+    "reference_answer": "10 to 20 percent",
+    "relevant_docs": [
+      "chunking.md"
+    ]
+  },
+  {
+    "id": 3,
+    "question": "What formula does reciprocal rank fusion use?",
+    "reference_answer": "1/(k + rank)",
+    "relevant_docs": [
+      "rrf.md"
+    ]
+  },
+  {
+    "id": 4,
+    "question": "Which two retrieval methods can RRF combine?",
+    "reference_answer": "BM25 lexical and dense semantic retrieval",
+    "relevant_docs": [
+      "rrf.md"
+    ]
+  },
+  {
+    "id": 5,
+    "question": "What should a grounded system do when supporting evidence is missing?",
+    "reference_answer": "abstention",
+    "relevant_docs": [
+      "hallucination.md"
+    ]
+  },
+  {
+    "id": 6,
+    "question": "How does faithfulness differ from answer correctness?",
+    "reference_answer": "supplied evidence",
+    "relevant_docs": [
+      "hallucination.md"
+    ]
+  },
+  {
+    "id": 7,
+    "question": "What does temperature affect during token sampling?",
+    "reference_answer": "randomness",
+    "relevant_docs": [
+      "sampling.md"
+    ]
+  },
+  {
+    "id": 8,
+    "question": "What does top-p constrain?",
+    "reference_answer": "cumulative probability",
+    "relevant_docs": [
+      "sampling.md"
+    ]
+  },
+  {
+    "id": 9,
+    "question": "What is the per-query MRR contribution for rank r?",
+    "reference_answer": "1 divided by the rank",
+    "relevant_docs": [
+      "evaluation.md"
+    ]
+  },
+  {
+    "id": 10,
+    "question": "Why evaluate retrieval independently of generation?",
+    "reference_answer": "evidence failures from answer synthesis failures",
+    "relevant_docs": [
+      "evaluation.md"
+    ]
+  },
+  {
+    "id": 11,
+    "question": "What is the purpose of MLflow experiment tracking?",
+    "reference_answer": "configurations, metrics, code versions, and artifacts",
+    "relevant_docs": [
+      "mlops.md"
+    ]
+  },
+  {
+    "id": 12,
+    "question": "Are CI smoke tests equivalent to LLM quality tests?",
+    "reference_answer": "not equivalent",
+    "relevant_docs": [
+      "mlops.md"
+    ]
+  },
+  {
+    "id": 13,
+    "question": "Should an assistant obey commands embedded in retrieved documents?",
+    "reference_answer": "avoid following commands embedded",
+    "relevant_docs": [
+      "prompt_injection.md"
+    ]
+  },
+  {
+    "id": 14,
+    "question": "What is the tradeoff from adding a reranker?",
+    "reference_answer": "adding compute and latency",
+    "relevant_docs": [
+      "latency.md"
+    ]
+  },
+  {
+    "id": 15,
+    "question": "Does temperature zero guarantee reproducibility for all hosted models?",
+    "reference_answer": "not guaranteed",
+    "relevant_docs": [
+      "sampling.md"
+    ]
+  },
+  {
+    "id": 16,
+    "question": "Should production teams commit API keys to GitHub?",
+    "reference_answer": "do not commit API keys",
+    "relevant_docs": [
+      "mlops.md"
+    ]
+  }
+]

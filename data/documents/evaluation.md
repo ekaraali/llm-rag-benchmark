@@ -1,0 +1,2 @@
+# Evaluating retrieval
+Recall at k measures the fraction of relevant documents recovered in the top k retrieved items. Mean Reciprocal Rank (MRR) rewards an early first relevant hit; its per-query contribution is 1 divided by the rank of the first relevant result. Evaluate retrieval independently of generation to distinguish evidence failures from answer synthesis failures. Small benchmarks have substantial uncertainty, and holdout sets should not be tuned against repeatedly.
