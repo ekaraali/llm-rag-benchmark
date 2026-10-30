@@ -138,7 +138,7 @@ Each question in [`data/benchmark.json`](data/benchmark.json) labels its evidenc
      "quote": "RRF combines BM25 lexical and dense semantic retrieval without needing directly comparable scores."}
   ],
   "evidence_groups": [["E1"]],
-  "label_status": "draft",
+  "label_status": "verified",
   "legacy_id": 4
 }
 ```
@@ -146,7 +146,7 @@ Each question in [`data/benchmark.json`](data/benchmark.json) labels its evidenc
 - `evidence_groups`: each group is one piece of evidence the answer needs (groups are combined with **AND**); the evidence IDs inside a group are alternatives that each satisfy it (**OR**). Single-hop questions have one group; multi-hop questions have two or more.
 - `answerable: false` marks questions whose answer is not in the corpus. They take `"question_type": "unanswerable"`, a `null` reference answer and empty evidence fields, and are scored on abstention.
 - A chunk counts as relevant to a quote when it contains at least half of the quote's characters.
-- `label_status` is `draft` until a human has checked the evidence quotes. The 16 v0.1 questions were migrated with [`scripts/migrate_benchmark_v1_to_v2.py`](scripts/migrate_benchmark_v1_to_v2.py) and are still `draft`.
+- `label_status` is `draft` until a human has checked the evidence quotes. The 16 v0.1 questions were migrated with [`scripts/migrate_benchmark_v1_to_v2.py`](scripts/migrate_benchmark_v1_to_v2.py) and their evidence quotes have been checked by a human (`verified`).
 - [`src/schema.py`](src/schema.py) validates every question on load: quotes must match the document text exactly (whitespace aside), and IDs, groups and documents must be consistent.
 
 ## Retrieval metrics (v0.2)
