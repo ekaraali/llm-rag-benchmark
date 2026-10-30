@@ -3,7 +3,8 @@
 import pytest
 
 from src.retrieval import split_words, chunk_document, rrf_fuse, Retriever
-from src.evaluate import evaluate_answer, is_abstention
+from src.evaluate import evaluate_answer, has_abstention_marker
+from src.llm import build_messages, prompt_version, RAG_SYSTEM_PROMPTS
 from experiments.run_benchmark import check_pipelines
 
 
@@ -48,14 +49,15 @@ def test_evaluation():
     assert m['reference_phrase_match'] == 1
     assert m['retrieval_hit'] == 1
     assert m['citation_precision'] == 1
-    assert m['abstained'] == 0
+    assert m['abstention_marker'] == 0
 
 
 def test_unanswerable_evaluation():
     m = evaluate_answer('Insufficient evidence.', None, [], [])
-    assert m['abstained'] == 1
+    assert m['abstention_marker'] == 1
     assert m['reference_phrase_match'] is None
-    assert is_abstention('The excerpts give INSUFFICIENT EVIDENCE for this.')
+    # a hedged answer still carries the marker; the metric cannot tell it from a refusal
+    assert has_abstention_marker('Insufficient evidence. However, the excerpt says 10 to 20 percent.')
 
 
 def test_pipeline_names():
@@ -108,3 +110,17 @@ def test_model_name_string_loads_sentence_transformer(tmp_path, monkeypatch):
     r = Retriever(tmp_path, chunk_words=50, overlap_words=5, embedding_model='some/model-name')
     assert r.search('temperature', 1, method='dense')[0]['doc'] == 'a.md'
     assert loaded['name'] == 'some/model-name'
+
+
+def test_prompt_versions():
+    passages = [{'doc': 'rrf.md', 'text': 'RRF fuses ranks.'}]
+    assert prompt_version({}) == 'strict'  # default keeps v0.2 behaviour
+    strict = build_messages('Q?', passages, {})
+    inference = build_messages('Q?', passages, {'prompt_version': 'inference'})
+    assert strict[0]['content'] == RAG_SYSTEM_PROMPTS['strict']
+    assert inference[0]['content'] == RAG_SYSTEM_PROMPTS['inference']
+    assert '[rrf.md] RRF fuses ranks.' in strict[1]['content']
+    # the direct pipeline (no passages) is unaffected by prompt_version
+    assert build_messages('Q?', [], {'prompt_version': 'inference'})[0]['content'] == build_messages('Q?', [], {})[0]['content']
+    with pytest.raises(ValueError, match='prompt_version'):
+        prompt_version({'prompt_version': 'loose'})

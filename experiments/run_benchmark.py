@@ -23,7 +23,7 @@ import yaml
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 from src.retrieval import Retriever  # noqa: E402
-from src.llm import generate  # noqa: E402
+from src.llm import generate, prompt_version  # noqa: E402
 from src.evaluate import evaluate_answer  # noqa: E402
 from src.schema import load_benchmark, relevant_chunks  # noqa: E402
 from src import retrieval_metrics as rm  # noqa: E402
@@ -81,6 +81,9 @@ def run(args):
         cfg['top_k'] = args.top_k
     if cfg['top_k'] < 1:
         raise ValueError('top_k must be >= 1')
+    if args.prompt_version:
+        cfg['prompt_version'] = args.prompt_version
+    cfg['prompt_version'] = prompt_version(cfg)  # validates the name before any model call
     check_pipelines(cfg['pipelines'])
     if cfg['provider'] == 'mock':
         print('WARNING: mock mode is a smoke test, NOT an LLM benchmark. Do not publish metrics as model performance.')
@@ -129,7 +132,7 @@ def run(args):
                          'retrieved_chunks': '|'.join(c['chunk_id'] for c in hits),
                          'latency_seconds': secs, **metrics, **ret})
             shown = 'n/a' if ret['chunk_recall_at_k'] is None else f"{ret['chunk_recall_at_k']:.2f}"
-            print(f"{pipeline:12} {q['question_id']} recall@{k}={shown} abstained={metrics['abstained']} {secs:.2f}s")
+            print(f"{pipeline:12} {q['question_id']} recall@{k}={shown} marker={metrics['abstention_marker']} {secs:.2f}s")
 
     stamp = time.strftime('%Y%m%d-%H%M%S')
     out = ROOT / 'results' / (('SMOKE_' if cfg['provider'] == 'mock' else '') + stamp)
@@ -148,8 +151,8 @@ def run(args):
         summary.append({
             'pipeline': pipeline, 'n': len(r), 'n_unanswerable': len(unans),
             **{m: mean(x[m] for x in ans) for m in ANSWER_METRICS + RETRIEVAL_METRICS},
-            'false_abstention_rate': mean(x['abstained'] for x in ans),
-            'abstention_accuracy_unanswerable': mean(x['abstained'] for x in unans),
+            'abstention_marker_rate_answerable': mean(x['abstention_marker'] for x in ans),
+            'abstention_marker_rate_unanswerable': mean(x['abstention_marker'] for x in unans),
             'latency_seconds': mean(x['latency_seconds'] for x in r),
         })
     with (out / 'summary.csv').open('w', newline='') as f:
@@ -165,12 +168,15 @@ def run(args):
         '# Experiment results' + (' — SMOKE TEST ONLY' if cfg['provider'] == 'mock' else ''),
         '', '> Reference phrase match is a weak proxy; manually review answers before claiming correctness.',
         f'> Evidence labels: {dict(status)} (draft = not yet human-verified).',
-        '', f'| Pipeline | Questions | Phrase match | Chunk recall@{k} | nDCG@{k} | MRR | Evidence coverage@{k} | Avg latency (s) |',
-        '|---|---:|---:|---:|---:|---:|---:|---:|',
+        '> Abstention marker = the answer contains "Insufficient evidence"; it does not separate refusals from hedged answers.',
+        '', f'| Pipeline | Questions | Phrase match | Chunk recall@{k} | nDCG@{k} | MRR | Evidence coverage@{k} | '
+            f'Abstention marker (answerable) | Avg latency (s) |',
+        '|---|---:|---:|---:|---:|---:|---:|---:|---:|',
         *[f"| {s['pipeline']} | {s['n']} | {fmt(s['reference_phrase_match'])} | {fmt(s['chunk_recall_at_k'])} | "
           f"{fmt(s['chunk_ndcg_at_k'])} | {fmt(s['chunk_mrr'])} | {fmt(s['evidence_coverage_at_k'])} | "
-          f"{fmt(s['latency_seconds'])} |" for s in summary],
-        '', 'Model: `' + cfg['model'] + '`, provider: `' + cfg['provider'] + '`.',
+          f"{fmt(s['abstention_marker_rate_answerable'])} | {fmt(s['latency_seconds'])} |" for s in summary],
+        '', 'Model: `' + cfg['model'] + '`, provider: `' + cfg['provider'] + '`, prompt version: `'
+            + cfg['prompt_version'] + '`.',
     ]))
 
     # Log the effective config and summary metrics for run comparison.
@@ -200,5 +206,6 @@ if __name__ == '__main__':
     p.add_argument('--model', help='Override model name')
     p.add_argument('--limit', type=int, default=None)
     p.add_argument('--top-k', type=int, default=None, help='Override retrieval depth without editing config.yaml')
+    p.add_argument('--prompt-version', help='Override the RAG system prompt version (strict | inference)')
     p.add_argument('--lexical-smoke', action='store_true', help='BM25 only, no embedding download; smoke checks only')
     run(p.parse_args())

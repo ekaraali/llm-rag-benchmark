@@ -52,7 +52,7 @@ Full numbers and the per-response human-validated review labels are in [`reports
 - **LLM pipelines:** Compare no-retrieval responses with dense, BM25 and hybrid retrieval, so each retrieval component can be measured on its own.
 - **Retrieval engineering:** Word-based chunking with character spans, overlap, sentence-transformer embeddings, a dependency-free BM25 implementation, and reciprocal rank fusion (RRF).
 - **Experimentation:** Configurable retrieval depth and decoding settings, per-question outputs, automatically generated summaries, and MLflow experiment records.
-- **Evaluation literacy:** Distinguish string-based metrics, chunk- and document-level retrieval metrics (Recall@K, MRR, nDCG, evidence coverage), citation-string checks, abstention, and assessed semantic correctness.
+- **Evaluation literacy:** Distinguish string-based metrics, chunk- and document-level retrieval metrics (Recall@K, MRR, nDCG, evidence coverage), citation-string checks, abstention markers, and assessed semantic correctness.
 - **Operational practices:** Documented Python modules, pytest tests, GitHub Actions CI, Dockerfile, and local, no-API-key Ollama inference.
 
 ## Architecture
@@ -160,8 +160,21 @@ Computed per question from the full ranking, with binary relevance, for answerab
 | `chunk_mrr` | chunk | 1 / rank of the first relevant chunk (averaged = MRR) |
 | `evidence_coverage_at_k` | chunk | 1 if every evidence group has a chunk in the top K (strict multi-hop criterion) |
 | `doc_recall_at_k`, `doc_mrr` | document | The same ideas at document level |
-| `false_abstention_rate` | answer | Share of answerable questions where the model said "Insufficient evidence" |
-| `abstention_accuracy_unanswerable` | answer | Share of unanswerable questions where the model abstained |
+| `abstention_marker_rate_answerable` | answer | Share of answerable questions whose answer contains "Insufficient evidence" |
+| `abstention_marker_rate_unanswerable` | answer | The same share on unanswerable questions (where abstaining is the desired behaviour) |
+
+The abstention marker only checks whether the phrase appears. It cannot tell a real refusal from a *hedged answer* that first says "Insufficient evidence." and then gives the answer anyway, so it is reported as a marker rate rather than a refusal rate. Separating answered, hedged and refused responses is planned for the LLM-as-a-judge step.
+
+### Prompt versions
+
+The RAG system prompt is selected with `prompt_version` in `config.yaml` (or `--prompt-version`); the direct pipeline is not affected.
+
+| Version | Behaviour |
+|---|---|
+| `strict` (default) | Answer only from the excerpts; say "Insufficient evidence." if they do not support an answer. Used for all published runs. |
+| `inference` | Answer when the excerpts support it directly or by straightforward inference; say "Insufficient evidence." only when no excerpt is relevant. |
+
+The `inference` version exists for a planned ablation. Fewer abstentions are only an improvement if correctness does not drop, so the comparison will be run after answer correctness can be judged at scale, and confirmed on questions that were not used to design the prompt.
 
 ## Reproduce locally
 
