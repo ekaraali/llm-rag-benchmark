@@ -166,8 +166,3 @@ Multi-reviewer agreement checks; expanded and held-out questions; more faithful 
 ## License
 
 See [LICENSE](LICENSE) for the project license. The technical-note corpus is original educational material.
-
-
-### Review revision (29 October 2026)
-
-After re-examining response labels, the Direct LLM baseline is classified as **3 correct / 3 partial / 10 incorrect** in both runs (previously 4 / 2 / 10). All published correctness tables and figures in this package reflect the revised files. The two runs reuse the same 16 questions; their 96 records must not be interpreted as 96 independent test questions.
