@@ -8,6 +8,6 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - run: pip install pytest scikit-learn PyYAML requests
+      - run: pip install pytest numpy PyYAML requests
       - run: python -m pytest -q
       - run: python -m experiments.run_benchmark --provider mock --lexical-smoke --limit 2

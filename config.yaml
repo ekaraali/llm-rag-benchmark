@@ -6,9 +6,13 @@ api_key_env: LLM_API_KEY
 embedding_model: sentence-transformers/all-MiniLM-L6-v2
 chunk_words: 100
 chunk_overlap_words: 20
+# BM25 lexical retrieval: k1 = term-frequency saturation, b = length normalisation
+bm25_k1: 1.5
+bm25_b: 0.75
 top_k: 3
 temperature: 0.0
 max_tokens: 180
-pipelines: [direct, dense_rag, hybrid_reasoning_rag]
+# direct | dense_rag | bm25_rag | hybrid_rag (BM25 + dense fused with RRF)
+pipelines: [direct, dense_rag, bm25_rag, hybrid_rag]
 track_mlflow: true
 mlflow_experiment: llm-rag-benchmark

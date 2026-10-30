@@ -1,130 +1,386 @@
 [
   {
-    "id": 1,
+    "question_id": "Q001",
     "question": "What problem can 256-token chunks cause?",
     "reference_answer": "fragment multi-paragraph evidence",
-    "relevant_docs": [
+    "answerable": true,
+    "question_type": "single_hop",
+    "relevant_doc_ids": [
       "chunking.md"
-    ]
+    ],
+    "evidence": [
+      {
+        "evidence_id": "E1",
+        "doc_id": "chunking.md",
+        "quote": "Smaller chunks such as 256 tokens can isolate facts but fragment multi-paragraph evidence."
+      }
+    ],
+    "evidence_groups": [
+      [
+        "E1"
+      ]
+    ],
+    "label_status": "draft",
+    "legacy_id": 1
   },
   {
-    "id": 2,
+    "question_id": "Q002",
     "question": "What is a common starting percentage for chunk overlap?",
     "reference_answer": "10 to 20 percent",
-    "relevant_docs": [
+    "answerable": true,
+    "question_type": "single_hop",
+    "relevant_doc_ids": [
       "chunking.md"
-    ]
+    ],
+    "evidence": [
+      {
+        "evidence_id": "E1",
+        "doc_id": "chunking.md",
+        "quote": "A common starting overlap is 10 to 20 percent of chunk size."
+      }
+    ],
+    "evidence_groups": [
+      [
+        "E1"
+      ]
+    ],
+    "label_status": "draft",
+    "legacy_id": 2
   },
   {
-    "id": 3,
+    "question_id": "Q003",
     "question": "What formula does reciprocal rank fusion use?",
     "reference_answer": "1/(k + rank)",
-    "relevant_docs": [
+    "answerable": true,
+    "question_type": "single_hop",
+    "relevant_doc_ids": [
       "rrf.md"
-    ]
+    ],
+    "evidence": [
+      {
+        "evidence_id": "E1",
+        "doc_id": "rrf.md",
+        "quote": "Each candidate document receives a score equal to the sum of 1/(k + rank) across retrievers where it appears."
+      }
+    ],
+    "evidence_groups": [
+      [
+        "E1"
+      ]
+    ],
+    "label_status": "draft",
+    "legacy_id": 3
   },
   {
-    "id": 4,
+    "question_id": "Q004",
     "question": "Which two retrieval methods can RRF combine?",
     "reference_answer": "BM25 lexical and dense semantic retrieval",
-    "relevant_docs": [
+    "answerable": true,
+    "question_type": "single_hop",
+    "relevant_doc_ids": [
       "rrf.md"
-    ]
+    ],
+    "evidence": [
+      {
+        "evidence_id": "E1",
+        "doc_id": "rrf.md",
+        "quote": "RRF combines BM25 lexical and dense semantic retrieval without needing directly comparable scores."
+      }
+    ],
+    "evidence_groups": [
+      [
+        "E1"
+      ]
+    ],
+    "label_status": "draft",
+    "legacy_id": 4
   },
   {
-    "id": 5,
+    "question_id": "Q005",
     "question": "What should a grounded system do when supporting evidence is missing?",
     "reference_answer": "abstention",
-    "relevant_docs": [
+    "answerable": true,
+    "question_type": "single_hop",
+    "relevant_doc_ids": [
       "hallucination.md"
-    ]
+    ],
+    "evidence": [
+      {
+        "evidence_id": "E1",
+        "doc_id": "hallucination.md",
+        "quote": "When relevant evidence is absent, the correct response can be an explicit abstention rather than a fabricated answer."
+      }
+    ],
+    "evidence_groups": [
+      [
+        "E1"
+      ]
+    ],
+    "label_status": "draft",
+    "legacy_id": 5
   },
   {
-    "id": 6,
+    "question_id": "Q006",
     "question": "How does faithfulness differ from answer correctness?",
     "reference_answer": "supplied evidence",
-    "relevant_docs": [
+    "answerable": true,
+    "question_type": "single_hop",
+    "relevant_doc_ids": [
       "hallucination.md"
-    ]
+    ],
+    "evidence": [
+      {
+        "evidence_id": "E1",
+        "doc_id": "hallucination.md",
+        "quote": "Faithfulness checks whether generated claims agree with supplied evidence; answer correctness checks agreement with a reference answer."
+      }
+    ],
+    "evidence_groups": [
+      [
+        "E1"
+      ]
+    ],
+    "label_status": "draft",
+    "legacy_id": 6
   },
   {
-    "id": 7,
+    "question_id": "Q007",
     "question": "What does temperature affect during token sampling?",
     "reference_answer": "randomness",
-    "relevant_docs": [
+    "answerable": true,
+    "question_type": "single_hop",
+    "relevant_doc_ids": [
       "sampling.md"
-    ]
+    ],
+    "evidence": [
+      {
+        "evidence_id": "E1",
+        "doc_id": "sampling.md",
+        "quote": "Temperature scales the logits before sampling and changes randomness."
+      }
+    ],
+    "evidence_groups": [
+      [
+        "E1"
+      ]
+    ],
+    "label_status": "draft",
+    "legacy_id": 7
   },
   {
-    "id": 8,
+    "question_id": "Q008",
     "question": "What does top-p constrain?",
     "reference_answer": "cumulative probability",
-    "relevant_docs": [
+    "answerable": true,
+    "question_type": "single_hop",
+    "relevant_doc_ids": [
       "sampling.md"
-    ]
+    ],
+    "evidence": [
+      {
+        "evidence_id": "E1",
+        "doc_id": "sampling.md",
+        "quote": "Top-p nucleus sampling restricts generation to a dynamically selected set of tokens whose cumulative probability reaches p."
+      }
+    ],
+    "evidence_groups": [
+      [
+        "E1"
+      ]
+    ],
+    "label_status": "draft",
+    "legacy_id": 8
   },
   {
-    "id": 9,
+    "question_id": "Q009",
     "question": "What is the per-query MRR contribution for rank r?",
     "reference_answer": "1 divided by the rank",
-    "relevant_docs": [
+    "answerable": true,
+    "question_type": "single_hop",
+    "relevant_doc_ids": [
       "evaluation.md"
-    ]
+    ],
+    "evidence": [
+      {
+        "evidence_id": "E1",
+        "doc_id": "evaluation.md",
+        "quote": "its per-query contribution is 1 divided by the rank of the first relevant result."
+      }
+    ],
+    "evidence_groups": [
+      [
+        "E1"
+      ]
+    ],
+    "label_status": "draft",
+    "legacy_id": 9
   },
   {
-    "id": 10,
+    "question_id": "Q010",
     "question": "Why evaluate retrieval independently of generation?",
     "reference_answer": "evidence failures from answer synthesis failures",
-    "relevant_docs": [
+    "answerable": true,
+    "question_type": "single_hop",
+    "relevant_doc_ids": [
       "evaluation.md"
-    ]
+    ],
+    "evidence": [
+      {
+        "evidence_id": "E1",
+        "doc_id": "evaluation.md",
+        "quote": "Evaluate retrieval independently of generation to distinguish evidence failures from answer synthesis failures."
+      }
+    ],
+    "evidence_groups": [
+      [
+        "E1"
+      ]
+    ],
+    "label_status": "draft",
+    "legacy_id": 10
   },
   {
-    "id": 11,
+    "question_id": "Q011",
     "question": "What is the purpose of MLflow experiment tracking?",
     "reference_answer": "configurations, metrics, code versions, and artifacts",
-    "relevant_docs": [
+    "answerable": true,
+    "question_type": "single_hop",
+    "relevant_doc_ids": [
       "mlops.md"
-    ]
+    ],
+    "evidence": [
+      {
+        "evidence_id": "E1",
+        "doc_id": "mlops.md",
+        "quote": "Experiment tracking records configurations, metrics, code versions, and artifacts for reproducibility."
+      }
+    ],
+    "evidence_groups": [
+      [
+        "E1"
+      ]
+    ],
+    "label_status": "draft",
+    "legacy_id": 11
   },
   {
-    "id": 12,
+    "question_id": "Q012",
     "question": "Are CI smoke tests equivalent to LLM quality tests?",
     "reference_answer": "not equivalent",
-    "relevant_docs": [
+    "answerable": true,
+    "question_type": "single_hop",
+    "relevant_doc_ids": [
       "mlops.md"
-    ]
+    ],
+    "evidence": [
+      {
+        "evidence_id": "E1",
+        "doc_id": "mlops.md",
+        "quote": "CI smoke tests validate code paths but are not equivalent to end-to-end LLM quality tests."
+      }
+    ],
+    "evidence_groups": [
+      [
+        "E1"
+      ]
+    ],
+    "label_status": "draft",
+    "legacy_id": 12
   },
   {
-    "id": 13,
+    "question_id": "Q013",
     "question": "Should an assistant obey commands embedded in retrieved documents?",
     "reference_answer": "avoid following commands embedded",
-    "relevant_docs": [
+    "answerable": true,
+    "question_type": "single_hop",
+    "relevant_doc_ids": [
       "prompt_injection.md"
-    ]
+    ],
+    "evidence": [
+      {
+        "evidence_id": "E1",
+        "doc_id": "prompt_injection.md",
+        "quote": "Systems should clearly separate instructions from retrieved text and avoid following commands embedded in source passages."
+      }
+    ],
+    "evidence_groups": [
+      [
+        "E1"
+      ]
+    ],
+    "label_status": "draft",
+    "legacy_id": 13
   },
   {
-    "id": 14,
+    "question_id": "Q014",
     "question": "What is the tradeoff from adding a reranker?",
     "reference_answer": "adding compute and latency",
-    "relevant_docs": [
+    "answerable": true,
+    "question_type": "single_hop",
+    "relevant_doc_ids": [
       "latency.md"
-    ]
+    ],
+    "evidence": [
+      {
+        "evidence_id": "E1",
+        "doc_id": "latency.md",
+        "quote": "Reranking can increase retrieval quality while adding compute and latency."
+      }
+    ],
+    "evidence_groups": [
+      [
+        "E1"
+      ]
+    ],
+    "label_status": "draft",
+    "legacy_id": 14
   },
   {
-    "id": 15,
+    "question_id": "Q015",
     "question": "Does temperature zero guarantee reproducibility for all hosted models?",
     "reference_answer": "not guaranteed",
-    "relevant_docs": [
+    "answerable": true,
+    "question_type": "single_hop",
+    "relevant_doc_ids": [
       "sampling.md"
-    ]
+    ],
+    "evidence": [
+      {
+        "evidence_id": "E1",
+        "doc_id": "sampling.md",
+        "quote": "Setting temperature to zero is commonly used for deterministic-style decoding but repeatability is not guaranteed for every hosted provider."
+      }
+    ],
+    "evidence_groups": [
+      [
+        "E1"
+      ]
+    ],
+    "label_status": "draft",
+    "legacy_id": 15
   },
   {
-    "id": 16,
+    "question_id": "Q016",
     "question": "Should production teams commit API keys to GitHub?",
     "reference_answer": "do not commit API keys",
-    "relevant_docs": [
+    "answerable": true,
+    "question_type": "single_hop",
+    "relevant_doc_ids": [
       "mlops.md"
-    ]
+    ],
+    "evidence": [
+      {
+        "evidence_id": "E1",
+        "doc_id": "mlops.md",
+        "quote": "do not commit API keys or proprietary datasets to public repositories."
+      }
+    ],
+    "evidence_groups": [
+      [
+        "E1"
+      ]
+    ],
+    "label_status": "draft",
+    "legacy_id": 16
   }
 ]
