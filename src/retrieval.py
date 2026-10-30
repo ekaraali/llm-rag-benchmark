@@ -82,7 +82,7 @@ class Retriever:
         an `encode` method (handy for tests and for sharing one model).
         """
         if self.embeddings is None:
-            if not hasattr(self.embedding_model, 'encode'):
+            if self.embedding_model is None or isinstance(self.embedding_model, str):
                 from sentence_transformers import SentenceTransformer
                 self.embedding_model = SentenceTransformer(
                     self.embedding_model or 'sentence-transformers/all-MiniLM-L6-v2', device='cpu')

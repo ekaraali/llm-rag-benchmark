@@ -90,3 +90,21 @@ def test_dense_and_hybrid_rankings(tmp_path):
     assert r.search('temperature randomness', 1, method='dense')[0]['doc'] == 'b.md'
     hybrid = [c['doc'] for c in r.search('rank fusion rankings', 3, method='hybrid')]
     assert hybrid[0] == 'a.md' and sorted(hybrid) == ['a.md', 'b.md', 'c.md']
+
+
+def test_model_name_string_loads_sentence_transformer(tmp_path, monkeypatch):
+    """Regression: a model *name* (str) must be loaded, not mistaken for an encoder (str has .encode)."""
+    import sys
+    import types
+    loaded = {}
+
+    class FakeST(_BagOfWordsEncoder):
+        def __init__(self, name, device=None):
+            loaded['name'] = name
+            super().__init__(['temperature', 'fusion'])
+
+    monkeypatch.setitem(sys.modules, 'sentence_transformers', types.SimpleNamespace(SentenceTransformer=FakeST))
+    (tmp_path / 'a.md').write_text('temperature changes randomness')
+    r = Retriever(tmp_path, chunk_words=50, overlap_words=5, embedding_model='some/model-name')
+    assert r.search('temperature', 1, method='dense')[0]['doc'] == 'a.md'
+    assert loaded['name'] == 'some/model-name'
