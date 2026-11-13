@@ -124,8 +124,10 @@ def call_judge(cfg, system, user):
         data = _post_with_retries(
             cfg['base_url'].rstrip('/') + '/v1/messages',
             {'x-api-key': key, 'anthropic-version': '2023-06-01', 'content-type': 'application/json'},
-            {'model': cfg['model'], 'max_tokens': cfg['max_tokens'], 'temperature': cfg.get('temperature', 0),
-             'system': system, 'messages': [{'role': 'user', 'content': user}]})
+            {'model': cfg['model'], 'max_tokens': cfg['max_tokens'], 'system': system,
+             'messages': [{'role': 'user', 'content': user}],
+             # some models (e.g. claude-haiku-5-5) reject temperature; send it only when configured
+             **({'temperature': cfg['temperature']} if cfg.get('temperature') is not None else {})})
         text = ''.join(block.get('text', '') for block in data.get('content', []) if block.get('type') == 'text')
         usage = data.get('usage', {})
         return text, usage.get('input_tokens', 0), usage.get('output_tokens', 0)
