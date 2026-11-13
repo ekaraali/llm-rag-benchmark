@@ -199,6 +199,29 @@ python -m experiments.check_regression --update-baselines  # accept the current 
 
 After `--update-baselines`, commit `evals/baselines.json` on its own and state in the commit message why the values changed, so every change to the quality bar is visible in the history.
 
+## LLM-as-a-judge calibration (in progress)
+
+Human labelling does not scale to larger benchmarks, so an LLM judge is being calibrated against the 96 human-validated v0.1 labels before it is used to score new runs.
+
+**Protocol**
+
+- **Question-level split.** The 16 questions are split 8/8 into dev and test ([`data/judge_split.json`](data/judge_split.json), created once by [`scripts/make_judge_split.py`](scripts/make_judge_split.py), stratified by how well each question was answered). Both `top_k` runs of a question stay on the same side, so nothing about a test question leaks into prompt design.
+- **Two prompt versions** ([`src/judge.py`](src/judge.py)): `basic` asks only for correct / partial / incorrect; `rubric` gives the judge the same three-level rubric the human evaluator used and also asks whether the answer was *answered*, *hedged* or *refused*.
+- **Dev for design, test once.** Prompts are adjusted on the dev split only. The final version is evaluated once on test; the runner refuses the test split without `--confirm-test`.
+- **Judge model.** `claude-haiku-5-5` via the Anthropic API, a different model family from the Llama 3.2 3B generator. The judge sees the question, the reference answer and the generated answer, and treats the answer as untrusted data.
+- **Agreement metrics** ([`src/agreement.py`](src/agreement.py)): exact agreement, Cohen's κ, linearly weighted κ (a correct/incorrect confusion counts more than a correct/partial one), macro-F1 with the human labels as reference, a confusion matrix, and 95% confidence intervals from a question-level bootstrap (answers to the same question are correlated, so questions are resampled).
+- **Cost control.** Judgements are cached locally, so repeating a run costs nothing; every run reports its token usage and estimated cost.
+
+```bash
+export ANTHROPIC_API_KEY=...           # set in the shell only; never commit keys
+python -m experiments.run_judge --dry-run                         # one prompt + cost estimate, no API calls
+python -m experiments.run_judge --split dev --version basic
+python -m experiments.run_judge --split dev --version rubric
+python -m experiments.run_judge --split test --version rubric --confirm-test
+```
+
+Results will be added here once the calibration has been run.
+
 ## Reproduce locally
 
 **Prerequisites:** Python 3.11, Ollama, and enough memory for `llama3.2:3b`. On macOS, the embedding encoder is configured to use CPU to avoid MPS incompatibilities; Ollama runs independently.
@@ -249,13 +272,16 @@ src/bm25.py                 # Okapi BM25, no external dependency
 src/schema.py               # benchmark schema validation, evidence -> chunk mapping
 src/retrieval_metrics.py    # Recall@K, MRR, nDCG, evidence coverage
 src/retrieval_eval.py       # retrieval-only evaluation shared by the runner and the CI check
+src/judge.py                # LLM-as-a-judge prompts, API clients, reply parsing
+src/agreement.py            # Cohen's kappa, weighted kappa, macro-F1, cluster bootstrap
 src/evaluate.py             # answer-level diagnostics (phrase match, token F1, abstention marker)
 src/llm.py                  # Ollama / OpenAI-compatible / mock clients
-experiments/                # benchmark runner, regression check, review utilities
+experiments/                # benchmark runner, regression check, judge calibration, review utilities
 evals/baselines.json        # committed evaluation baselines for the CI regression check
-scripts/                    # one-off data migrations
+scripts/                    # one-off data migrations and the judge dev/test split
 data/documents/             # 8 original educational knowledge notes
 data/benchmark.json         # 16 questions with evidence quotes (schema v0.2)
+data/judge_split.json       # fixed question-level dev/test split for judge calibration
 reports/v0.1/               # published v0.1 summaries, review labels, PNG figures
 tests/                      # unit tests, incl. regression-check tests
 .github/workflows/ci.yml    # automated CI checks
@@ -265,8 +291,8 @@ Dockerfile                  # portable execution environment
 ## Roadmap
 
 1. **v0.2:** BM25, renamed pipelines, evidence-level schema and retrieval metrics.
-2. **Evaluation regression in CI (this version):** retrieval baselines and frozen-answer metric checks on every push.
-3. **LLM-as-a-judge:** calibrate an automated judge against the human labels with a question-level dev/test split (Cohen's κ, macro-F1, confusion matrix), separating answered, hedged and refused responses.
+2. **Evaluation regression in CI:** retrieval baselines and frozen-answer metric checks on every push.
+3. **LLM-as-a-judge (in progress):** calibrate an automated judge against the human labels with a question-level dev/test split (Cohen's κ, macro-F1, confusion matrix), separating answered, hedged and refused responses.
 4. **Answer-quality regression:** a manual or scheduled workflow that generates answers for a golden question set, scores them with the judge and alerts when quality drops.
 5. **Harder benchmark:** 50–100 questions with similar distractor documents, multi-hop and unanswerable questions; retrieval baselines updated accordingly.
 6. **Cross-encoder reranking** as a separate pipeline.

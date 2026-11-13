@@ -1,0 +1,28 @@
+{
+  "description": "Question-level split for judge calibration. Ids are v0.1 question ids (legacy_id). Tune judge prompts on dev only; evaluate the frozen prompt on test.",
+  "method": "stratified by summed human label score, consecutive pairs, alternating assignment",
+  "source_files": [
+    "reports/v0.1/human_validated_reviews_k3.csv",
+    "reports/v0.1/human_validated_reviews_k5.csv"
+  ],
+  "dev": [
+    1,
+    2,
+    3,
+    6,
+    7,
+    8,
+    11,
+    14
+  ],
+  "test": [
+    4,
+    5,
+    9,
+    10,
+    12,
+    13,
+    15,
+    16
+  ]
+}
