@@ -90,7 +90,7 @@ def parse_judgement(text, version):
 def cache_key(cfg, version, question, reference, answer):
     """Stable key so an identical judgement is never paid for twice."""
     system, user = build_judge_messages(question, reference, answer, version)
-    raw = json.dumps([cfg['provider'], cfg['model'], cfg.get('temperature', 0), system, user])
+    raw = json.dumps([cfg['provider'], cfg['model'], cfg.get('temperature', 0), cfg.get('thinking'), system, user])
     return hashlib.sha256(raw.encode('utf-8')).hexdigest()
 
 
@@ -113,7 +113,11 @@ def _post_with_retries(url, headers, body, attempts=4, timeout=60):
 
 
 def call_judge(cfg, system, user):
-    """Send one judgement request; return (reply_text, input_tokens, output_tokens)."""
+    """Send one judgement request; return (reply_text, input_tokens, output_tokens).
+
+    Raises JudgeError when the reply contains no text, e.g. when a model that
+    thinks before answering used up `max_tokens` on thinking.
+    """
     provider = cfg['provider']
     if provider == 'mock':
         return _mock_judge(user), 0, 0
@@ -127,9 +131,16 @@ def call_judge(cfg, system, user):
             {'model': cfg['model'], 'max_tokens': cfg['max_tokens'], 'system': system,
              'messages': [{'role': 'user', 'content': user}],
              # some models (e.g. claude-haiku-5-5) reject temperature; send it only when configured
-             **({'temperature': cfg['temperature']} if cfg.get('temperature') is not None else {})})
+             **({'temperature': cfg['temperature']} if cfg.get('temperature') is not None else {}),
+             # models with adaptive thinking think by default; 'disabled' turns it off
+             **({'thinking': {'type': cfg['thinking']}} if cfg.get('thinking') else {})})
+        # select text blocks by type: responses can start with thinking blocks
         text = ''.join(block.get('text', '') for block in data.get('content', []) if block.get('type') == 'text')
         usage = data.get('usage', {})
+        if not text.strip():
+            raise JudgeError(f"Judge reply has no text (stop_reason={data.get('stop_reason')!r}, content types="
+                             f"{[b.get('type') for b in data.get('content', [])]}). If stop_reason is 'max_tokens', "
+                             'thinking used up the token budget: disable thinking or raise judge.max_tokens.')
         return text, usage.get('input_tokens', 0), usage.get('output_tokens', 0)
     if provider == 'openai_compatible':
         data = _post_with_retries(

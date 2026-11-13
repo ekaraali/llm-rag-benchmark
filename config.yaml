@@ -26,5 +26,6 @@ judge:
   base_url: https://api.anthropic.com
   api_key_env: ANTHROPIC_API_KEY # the key is read from this environment variable, never from files
   temperature: null              # claude-haiku-5-5 does not accept temperature; set a number for models that do
-  max_tokens: 200
+  thinking: disabled             # Haiku 5.5 thinks by default and thinking tokens count toward max_tokens
+  max_tokens: 400
   price_per_mtok: {input: 0.10, output: 0.50}  # USD, for cost estimates only; check the provider's pricing page

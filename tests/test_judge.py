@@ -69,6 +69,7 @@ def test_anthropic_request_format_and_retry_on_rate_limit(monkeypatch):
     assert headers['x-api-key'] == 'sk-test' and headers['anthropic-version'] == '2023-06-01'
     assert body['system'] == 'SYSTEM' and body['messages'] == [{'role': 'user', 'content': 'USER'}]
     assert body['model'] == 'claude-haiku-5-5' and body['temperature'] == 0.0
+    assert 'thinking' not in body  # not configured in CFG
 
 
 def test_client_errors_are_not_retried(monkeypatch):
@@ -110,3 +111,41 @@ def test_runner_with_mock_judge_uses_the_cache(tmp_path, monkeypatch):
     assert len(sent) == 4  # second run served entirely from the cache
     report = rj.agreement_report(rows)
     assert report['n'] == 4 and len(report['confusion_matrix']) == 3
+
+
+def test_haiku_settings_omit_temperature_and_disable_thinking(monkeypatch):
+    sent = []
+    reply = _Response(200, {'content': [{'type': 'text', 'text': '{"label": "partial"}'}], 'usage': {}})
+    monkeypatch.setitem(judge.os.environ, 'TEST_JUDGE_KEY', 'sk-test')
+    monkeypatch.setattr(judge.requests, 'post', lambda url, headers, json, timeout: sent.append(json) or reply)
+    call_judge({**CFG, 'temperature': None, 'thinking': 'disabled'}, 'S', 'U')
+    assert 'temperature' not in sent[0]
+    assert sent[0]['thinking'] == {'type': 'disabled'}
+
+
+def test_reply_with_only_thinking_is_an_error_not_an_empty_answer(monkeypatch):
+    """Regression: thinking used up max_tokens, so the reply had no text block."""
+    reply = _Response(200, {'content': [{'type': 'thinking', 'thinking': ''}], 'stop_reason': 'max_tokens',
+                            'usage': {'input_tokens': 300, 'output_tokens': 200}})
+    monkeypatch.setitem(judge.os.environ, 'TEST_JUDGE_KEY', 'sk-test')
+    monkeypatch.setattr(judge.requests, 'post', lambda url, headers, json, timeout: reply)
+    with pytest.raises(JudgeError, match='max_tokens'):
+        call_judge(CFG, 'S', 'U')
+
+
+def test_failed_judge_calls_are_not_cached(tmp_path, monkeypatch):
+    import experiments.run_judge as rj
+    monkeypatch.setattr(rj, 'CACHE', tmp_path / 'cache.jsonl')
+    items = rj.load_items('dev')[:2]
+
+    def failing(cfg, s, u):
+        raise JudgeError('no text')
+
+    monkeypatch.setattr(rj, 'call_judge', failing)
+    rows, _, _ = rj.judge_items(items, CFG, 'basic')
+    assert all(r['judge'] is None for r in rows)
+    assert rj.load_cache() == {}  # nothing stored, so the next run asks again
+
+
+def test_thinking_setting_is_part_of_the_cache_key():
+    assert cache_key({**CFG, 'thinking': 'disabled'}, 'basic', 'Q', 'R', 'A') != cache_key(CFG, 'basic', 'Q', 'R', 'A')

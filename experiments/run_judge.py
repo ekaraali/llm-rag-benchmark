@@ -66,15 +66,20 @@ def judge_items(items, cfg, version):
     with CACHE.open('a', encoding='utf-8') as cache_file:
         for n, it in enumerate(items, start=1):
             key = cache_key(cfg, version, it['question'], it['reference'], it['answer'])
-            if key in cache:
+            if key in cache and cache[key]['reply'].strip():
                 reply = cache[key]['reply']
             else:
                 system, user = build_judge_messages(it['question'], it['reference'], it['answer'], version)
-                reply, i, o = call_judge(cfg, system, user)
+                try:
+                    reply, i, o = call_judge(cfg, system, user)
+                except JudgeError as e:
+                    reply, i, o = '', 0, 0  # not cached, so the next run retries this answer
+                    print(f'  judge call failed: {e}')
                 tin, tout = tin + i, tout + o
-                cache[key] = {'key': key, 'reply': reply}
-                cache_file.write(json.dumps(cache[key]) + '\n')
-                cache_file.flush()
+                if reply.strip():
+                    cache[key] = {'key': key, 'reply': reply}
+                    cache_file.write(json.dumps(cache[key]) + '\n')
+                    cache_file.flush()
             try:
                 parsed, error = parse_judgement(reply, version), ''
             except JudgeError as e:
@@ -121,7 +126,7 @@ def write_outputs(rows, report, cfg, args, tin, tout):
         writer.writerows(rows)
     cost = estimate_cost(tin, tout, cfg['price_per_mtok'])
     summary = {'split': args.split, 'prompt_version': args.version, 'provider': cfg['provider'],
-               'model': cfg['model'], 'new_input_tokens': tin, 'new_output_tokens': tout,
+               'model': cfg['model'], 'thinking': cfg.get('thinking'), 'new_input_tokens': tin, 'new_output_tokens': tout,
                'estimated_cost_usd': round(cost, 4), **report}
     (out / 'summary.json').write_text(json.dumps(summary, indent=2), encoding='utf-8')
 
@@ -130,7 +135,7 @@ def write_outputs(rows, report, cfg, args, tin, tout):
     wlo, whi = report['weighted_kappa_ci95']
     lines = [
         f"# Judge calibration: {args.split} split, prompt `{args.version}`",
-        '', f"Judge: `{cfg['model']}` via `{cfg['provider']}`. "
+        '', f"Judge: `{cfg['model']}` via `{cfg['provider']}`, thinking: `{cfg.get('thinking') or 'model default'}`. "
             f"{report['n']} answers from {report['questions']} questions; {report['parse_errors']} unparseable replies excluded.",
         '', '| Metric | Value | 95% CI (question-level bootstrap) |', '|---|---:|---:|',
         f"| Accuracy (exact label agreement) | {report['accuracy']:.3f} | |",
