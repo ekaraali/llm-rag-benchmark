@@ -8,6 +8,11 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - run: pip install pytest numpy PyYAML requests
-      - run: python -m pytest -q
-      - run: python -m experiments.run_benchmark --provider mock --lexical-smoke --limit 2
+      - name: Install dependencies
+        run: pip install pytest numpy PyYAML requests
+      - name: Unit tests
+        run: python -m pytest -q
+      - name: Evaluation regression check (retrieval baselines + frozen-answer metrics)
+        run: python -m experiments.check_regression
+      - name: Smoke run of the benchmark pipeline (mock model, not an evaluation)
+        run: python -m experiments.run_benchmark --provider mock --lexical-smoke --limit 2

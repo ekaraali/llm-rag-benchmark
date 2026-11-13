@@ -25,8 +25,8 @@ sys.path.insert(0, str(ROOT))
 from src.retrieval import Retriever  # noqa: E402
 from src.llm import generate, prompt_version  # noqa: E402
 from src.evaluate import evaluate_answer  # noqa: E402
-from src.schema import load_benchmark, relevant_chunks  # noqa: E402
-from src import retrieval_metrics as rm  # noqa: E402
+from src.schema import load_benchmark  # noqa: E402
+from src.retrieval_eval import RETRIEVAL_METRICS, resolve_evidence, retrieval_scores  # noqa: E402
 
 # pipeline name -> retrieval method (None = no retrieval)
 PIPELINES = {'direct': None, 'dense_rag': 'dense', 'bm25_rag': 'bm25', 'hybrid_rag': 'hybrid'}
@@ -34,9 +34,8 @@ LEGACY_PIPELINES = {
     'hybrid_reasoning_rag': 'was renamed to "hybrid_rag" in v0.2 (BM25 replaces TF-IDF and the '
                             'and/versus query-splitting heuristic was removed). Check out tag v0.1.0 to reproduce v0.1.',
 }
-RETRIEVAL_METRICS = ('chunk_recall_at_k', 'chunk_ndcg_at_k', 'chunk_mrr', 'evidence_coverage_at_k',
-                     'doc_recall_at_k', 'doc_mrr')
-ANSWER_METRICS = ('reference_phrase_match', 'retrieval_hit', 'citation_precision')
+ANSWER_METRICS = ('reference_phrase_match', 'token_f1', 'reference_token_recall', 'retrieval_hit',
+                  'citation_precision')
 
 
 def check_pipelines(names):
@@ -46,21 +45,6 @@ def check_pipelines(names):
             raise ValueError(f'Pipeline "{name}" {LEGACY_PIPELINES[name]}')
         if name not in PIPELINES:
             raise ValueError(f'Unknown pipeline {name!r}; expected one of {sorted(PIPELINES)}')
-
-
-def retrieval_scores(ranked_chunks, q, groups, relevant_ids, k):
-    """Chunk- and document-level retrieval metrics for one answerable question."""
-    chunk_ids = [c['chunk_id'] for c in ranked_chunks]
-    docs = rm.dedupe_docs(ranked_chunks)
-    rel_docs = set(q['relevant_doc_ids'])
-    return {
-        'chunk_recall_at_k': rm.recall_at_k(chunk_ids, relevant_ids, k),
-        'chunk_ndcg_at_k': rm.ndcg_at_k(chunk_ids, relevant_ids, k),
-        'chunk_mrr': rm.reciprocal_rank(chunk_ids, relevant_ids),
-        'evidence_coverage_at_k': rm.evidence_coverage_at_k(chunk_ids, groups, k),
-        'doc_recall_at_k': rm.recall_at_k(docs, rel_docs, k),
-        'doc_mrr': rm.reciprocal_rank(docs, rel_docs),
-    }
 
 
 def mean(values):
@@ -97,14 +81,7 @@ def run(args):
         questions = questions[:args.limit]
 
     # Resolve evidence quotes to chunk IDs for this chunking configuration.
-    evidence = {}
-    for q in questions:
-        if q['answerable']:
-            rel, groups = relevant_chunks(q, retriever.docs, retriever.chunks)
-            if any(not g for g in groups):
-                raise ValueError(f"{q['question_id']}: an evidence quote is not contained in any chunk "
-                                 f"with chunk_words={cfg['chunk_words']}; use larger chunks or shorter quotes")
-            evidence[q['question_id']] = (rel, groups)
+    evidence = resolve_evidence(questions, retriever.docs, retriever.chunks, cfg['chunk_words'])
 
     rows = []
     k = cfg['top_k']

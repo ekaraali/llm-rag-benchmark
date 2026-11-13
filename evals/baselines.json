@@ -1,0 +1,79 @@
+{
+  "retrieval": {
+    "top_k": 3,
+    "methods": [
+      "bm25"
+    ],
+    "tolerance": 0.01,
+    "config": {
+      "chunk_words": 100,
+      "chunk_overlap_words": 20,
+      "bm25_k1": 1.5,
+      "bm25_b": 0.75
+    },
+    "metrics": {
+      "bm25": {
+        "chunk_recall_at_k": 0.9375,
+        "chunk_ndcg_at_k": 0.9375,
+        "chunk_mrr": 0.95,
+        "evidence_coverage_at_k": 0.9375,
+        "doc_recall_at_k": 0.9375,
+        "doc_mrr": 0.95
+      }
+    }
+  },
+  "frozen_answers": {
+    "files": [
+      "reports/v0.1/human_validated_reviews_k3.csv",
+      "reports/v0.1/human_validated_reviews_k5.csv"
+    ],
+    "metrics": {
+      "reports/v0.1/human_validated_reviews_k3.csv": {
+        "direct": {
+          "reference_phrase_match": 0.0625,
+          "token_f1": 0.04651,
+          "reference_token_recall": 0.255208,
+          "citation_precision": 0.0,
+          "abstention_marker": 0.0
+        },
+        "dense_rag": {
+          "reference_phrase_match": 0.625,
+          "token_f1": 0.242133,
+          "reference_token_recall": 0.723958,
+          "citation_precision": 0.5625,
+          "abstention_marker": 0.4375
+        },
+        "hybrid_reasoning_rag": {
+          "reference_phrase_match": 0.625,
+          "token_f1": 0.204576,
+          "reference_token_recall": 0.677083,
+          "citation_precision": 0.625,
+          "abstention_marker": 0.375
+        }
+      },
+      "reports/v0.1/human_validated_reviews_k5.csv": {
+        "direct": {
+          "reference_phrase_match": 0.0625,
+          "token_f1": 0.04651,
+          "reference_token_recall": 0.255208,
+          "citation_precision": 0.0,
+          "abstention_marker": 0.0
+        },
+        "dense_rag": {
+          "reference_phrase_match": 0.5625,
+          "token_f1": 0.247796,
+          "reference_token_recall": 0.723958,
+          "citation_precision": 0.6875,
+          "abstention_marker": 0.375
+        },
+        "hybrid_reasoning_rag": {
+          "reference_phrase_match": 0.6875,
+          "token_f1": 0.23033,
+          "reference_token_recall": 0.773958,
+          "citation_precision": 0.625,
+          "abstention_marker": 0.4375
+        }
+      }
+    }
+  }
+}

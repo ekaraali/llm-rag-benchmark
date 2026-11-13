@@ -53,7 +53,7 @@ Full numbers and the per-response human-validated review labels are in [`reports
 - **Retrieval engineering:** Word-based chunking with character spans, overlap, sentence-transformer embeddings, a dependency-free BM25 implementation, and reciprocal rank fusion (RRF).
 - **Experimentation:** Configurable retrieval depth and decoding settings, per-question outputs, automatically generated summaries, and MLflow experiment records.
 - **Evaluation literacy:** Distinguish string-based metrics, chunk- and document-level retrieval metrics (Recall@K, MRR, nDCG, evidence coverage), citation-string checks, abstention markers, and assessed semantic correctness.
-- **Operational practices:** Documented Python modules, pytest tests, GitHub Actions CI, Dockerfile, and local, no-API-key Ollama inference.
+- **Operational practices:** Documented Python modules, pytest tests, GitHub Actions CI with an evaluation regression gate, Dockerfile, and local, no-API-key Ollama inference.
 
 ## Architecture
 
@@ -149,9 +149,9 @@ Each question in [`data/benchmark.json`](data/benchmark.json) labels its evidenc
 - `label_status` is `draft` until a human has checked the evidence quotes. The 16 v0.1 questions were migrated with [`scripts/migrate_benchmark_v1_to_v2.py`](scripts/migrate_benchmark_v1_to_v2.py) and their evidence quotes have been checked by a human (`verified`).
 - [`src/schema.py`](src/schema.py) validates every question on load: quotes must match the document text exactly (whitespace aside), and IDs, groups and documents must be consistent.
 
-## Retrieval metrics (v0.2)
+## Metrics (v0.2)
 
-Computed per question from the full ranking, with binary relevance, for answerable questions only:
+Retrieval metrics are computed per question from the full ranking, with binary relevance, for answerable questions only. Answer metrics compare the generated answer with the reference answer; none of them measures semantic correctness, which is why the published results rely on human-validated labels:
 
 | Metric | Level | Meaning |
 |---|---|---|
@@ -160,6 +160,9 @@ Computed per question from the full ranking, with binary relevance, for answerab
 | `chunk_mrr` | chunk | 1 / rank of the first relevant chunk (averaged = MRR) |
 | `evidence_coverage_at_k` | chunk | 1 if every evidence group has a chunk in the top K (strict multi-hop criterion) |
 | `doc_recall_at_k`, `doc_mrr` | document | The same ideas at document level |
+| `reference_phrase_match` | answer | 1 if the normalised reference appears verbatim in the answer (weak proxy) |
+| `token_f1` | answer | SQuAD-style token-overlap F1 with the reference; penalises verbose answers |
+| `reference_token_recall` | answer | Share of reference tokens present in the answer; ignores verbosity and paraphrase |
 | `abstention_marker_rate_answerable` | answer | Share of answerable questions whose answer contains "Insufficient evidence" |
 | `abstention_marker_rate_unanswerable` | answer | The same share on unanswerable questions (where abstaining is the desired behaviour) |
 
@@ -175,6 +178,26 @@ The RAG system prompt is selected with `prompt_version` in `config.yaml` (or `--
 | `inference` | Answer when the excerpts support it directly or by straightforward inference; say "Insufficient evidence." only when no excerpt is relevant. |
 
 The `inference` version exists for a planned ablation. Fewer abstentions are only an improvement if correctness does not drop, so the comparison will be run after answer correctness can be judged at scale, and confirmed on questions that were not used to design the prompt.
+
+## Evaluation regression in CI
+
+Every push runs [`experiments/check_regression.py`](experiments/check_regression.py), which compares current metrics with the committed baselines in [`evals/baselines.json`](evals/baselines.json). It needs no LLM and runs in seconds.
+
+| Check | What it guards | Fails when |
+|---|---|---|
+| Retrieval baselines | Chunking, BM25 and ranking code | Recall@K, nDCG@K, MRR or evidence coverage drops by more than the tolerance (0.01), or the retrieval settings in `config.yaml` differ from those the baselines were measured with |
+| Frozen-answer metrics | The answer-metric code | Re-scoring the published v0.1 answers gives any different value; the answers never change, so only the scoring code can |
+
+The frozen-answer baselines reproduce the phrase-match and citation numbers published in `reports/v0.1/` exactly, and a unit test keeps them tied together. CI currently checks BM25 retrieval only, because dense retrieval would download an embedding model on every run.
+
+Baselines change only on purpose:
+
+```bash
+python -m experiments.check_regression                     # check (exit code 1 on regression)
+python -m experiments.check_regression --update-baselines  # accept the current values
+```
+
+After `--update-baselines`, commit `evals/baselines.json` on its own and state in the commit message why the values changed, so every change to the quality bar is visible in the history.
 
 ## Reproduce locally
 
@@ -225,27 +248,31 @@ src/retrieval.py            # chunking with spans, dense / BM25 / hybrid (RRF) r
 src/bm25.py                 # Okapi BM25, no external dependency
 src/schema.py               # benchmark schema validation, evidence -> chunk mapping
 src/retrieval_metrics.py    # Recall@K, MRR, nDCG, evidence coverage
-src/evaluate.py             # answer-level diagnostics and abstention detection
+src/retrieval_eval.py       # retrieval-only evaluation shared by the runner and the CI check
+src/evaluate.py             # answer-level diagnostics (phrase match, token F1, abstention marker)
 src/llm.py                  # Ollama / OpenAI-compatible / mock clients
-experiments/                # benchmark runner + review utilities
+experiments/                # benchmark runner, regression check, review utilities
+evals/baselines.json        # committed evaluation baselines for the CI regression check
 scripts/                    # one-off data migrations
 data/documents/             # 8 original educational knowledge notes
 data/benchmark.json         # 16 questions with evidence quotes (schema v0.2)
 reports/v0.1/               # published v0.1 summaries, review labels, PNG figures
-tests/                      # unit tests
+tests/                      # unit tests, incl. regression-check tests
 .github/workflows/ci.yml    # automated CI checks
 Dockerfile                  # portable execution environment
 ```
 
 ## Roadmap
 
-1. **v0.2 (this version):** BM25, renamed pipelines, evidence-level schema and retrieval metrics.
-2. **LLM-as-a-judge:** calibrate an automated judge against the human labels with a question-level dev/test split (Cohen's κ, macro-F1, confusion matrix).
-3. **Harder benchmark:** 50–100 questions with similar distractor documents, multi-hop and unanswerable questions.
-4. **Cross-encoder reranking** as a separate pipeline.
-5. **Reasoning-guided RAG:** query decomposition and iterative retrieval as a separate pipeline.
-6. **Statistical evaluation:** question-level bootstrap confidence intervals and paired comparisons.
-7. **Multi-model comparison:** model capacity versus retrieval strategy.
+1. **v0.2:** BM25, renamed pipelines, evidence-level schema and retrieval metrics.
+2. **Evaluation regression in CI (this version):** retrieval baselines and frozen-answer metric checks on every push.
+3. **LLM-as-a-judge:** calibrate an automated judge against the human labels with a question-level dev/test split (Cohen's κ, macro-F1, confusion matrix), separating answered, hedged and refused responses.
+4. **Answer-quality regression:** a manual or scheduled workflow that generates answers for a golden question set, scores them with the judge and alerts when quality drops.
+5. **Harder benchmark:** 50–100 questions with similar distractor documents, multi-hop and unanswerable questions; retrieval baselines updated accordingly.
+6. **Cross-encoder reranking** as a separate pipeline.
+7. **Reasoning-guided RAG:** query decomposition and iterative retrieval as a separate pipeline.
+8. **Statistical evaluation:** question-level bootstrap confidence intervals and paired comparisons.
+9. **Multi-model comparison:** model capacity versus retrieval strategy.
 
 ## License
 
