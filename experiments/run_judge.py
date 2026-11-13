@@ -26,7 +26,7 @@ import yaml
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 from src.judge import (LABELS, ANSWER_STATUSES, JUDGE_PROMPTS, JudgeError, build_judge_messages,  # noqa: E402
-                       cache_key, call_judge, estimate_cost, parse_judgement)
+                       cache_key, call_judge, estimate_cost, judgement_schema, parse_judgement)
 from src.agreement import (accuracy, cohen_kappa, confusion_matrix, macro_f1,  # noqa: E402
                            cluster_bootstrap_ci)
 
@@ -71,7 +71,7 @@ def judge_items(items, cfg, version):
             else:
                 system, user = build_judge_messages(it['question'], it['reference'], it['answer'], version)
                 try:
-                    reply, i, o = call_judge(cfg, system, user)
+                    reply, i, o = call_judge(cfg, system, user, judgement_schema(version))
                 except JudgeError as e:
                     reply, i, o = '', 0, 0  # not cached, so the next run retries this answer
                     print(f'  judge call failed: {e}')
@@ -84,8 +84,10 @@ def judge_items(items, cfg, version):
                 parsed, error = parse_judgement(reply, version), ''
             except JudgeError as e:
                 parsed, error = {'label': None}, str(e)
+            # the rubric forbids a hedged answer being 'correct'; count violations instead of fixing them
+            violation = parsed.get('answer_status') == 'hedged' and parsed['label'] == 'correct'
             rows.append({**it, 'judge': parsed['label'], 'answer_status': parsed.get('answer_status', ''),
-                         'reason': parsed.get('reason', ''), 'error': error})
+                         'reason': parsed.get('reason', ''), 'rule_violation': int(violation), 'error': error})
             print(f"[{n}/{len(items)}] Q{it['question_id']:02d} {it['pipeline']:22} k={it['top_k']} "
                   f"human={it['human']:9} judge={parsed['label'] or 'ERROR'}")
     return rows, tin, tout
@@ -146,7 +148,9 @@ def write_outputs(rows, report, cfg, args, tin, tout):
         '| human \\ judge | ' + ' | '.join(LABELS) + ' |', '|---|' + '---:|' * len(LABELS),
         *[f'| {LABELS[i]} | ' + ' | '.join(str(v) for v in m[i]) + ' |' for i in range(len(LABELS))],
     ]
-    if args.version == 'rubric':
+    if args.version != 'basic':
+        violations = sum(r['rule_violation'] for r in rows)
+        lines += ['', f'Rubric rule violations (hedged but labelled correct): {violations}']
         status = Counter((r['pipeline'], r['answer_status']) for r in rows if r['judge'])
         pipelines = sorted({r['pipeline'] for r in rows})
         lines += ['', 'Answer status according to the judge:', '',

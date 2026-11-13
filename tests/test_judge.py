@@ -6,7 +6,8 @@ from pathlib import Path
 import pytest
 
 import src.judge as judge
-from src.judge import JudgeError, build_judge_messages, cache_key, call_judge, parse_judgement
+from src.judge import (JudgeError, build_judge_messages, cache_key, call_judge, judgement_schema,
+                       parse_judgement, JUDGE_PROMPTS)
 
 ROOT = Path(__file__).resolve().parents[1]
 CFG = {'provider': 'anthropic', 'model': 'claude-haiku-5-5', 'base_url': 'https://api.anthropic.com',
@@ -103,7 +104,7 @@ def test_runner_with_mock_judge_uses_the_cache(tmp_path, monkeypatch):
         json.loads((ROOT / 'data/judge_split.json').read_text())['dev'])
     sent = []
     real_call = rj.call_judge
-    monkeypatch.setattr(rj, 'call_judge', lambda cfg, s, u: sent.append(1) or real_call(cfg, s, u))
+    monkeypatch.setattr(rj, 'call_judge', lambda cfg, s, u, schema=None: sent.append(1) or real_call(cfg, s, u, schema))
     cfg = {**CFG, 'provider': 'mock'}
     rows, _, _ = rj.judge_items(items[:4], cfg, 'rubric')
     assert len(sent) == 4 and all(r['judge'] in judge.LABELS for r in rows)
@@ -138,7 +139,7 @@ def test_failed_judge_calls_are_not_cached(tmp_path, monkeypatch):
     monkeypatch.setattr(rj, 'CACHE', tmp_path / 'cache.jsonl')
     items = rj.load_items('dev')[:2]
 
-    def failing(cfg, s, u):
+    def failing(cfg, s, u, schema=None):
         raise JudgeError('no text')
 
     monkeypatch.setattr(rj, 'call_judge', failing)
@@ -149,3 +150,33 @@ def test_failed_judge_calls_are_not_cached(tmp_path, monkeypatch):
 
 def test_thinking_setting_is_part_of_the_cache_key():
     assert cache_key({**CFG, 'thinking': 'disabled'}, 'basic', 'Q', 'R', 'A') != cache_key(CFG, 'basic', 'Q', 'R', 'A')
+
+
+def test_forced_tool_call_returns_schema_valid_json(monkeypatch):
+    """Regression: free-text JSON broke when the reason contained quotes; tool input cannot."""
+    sent = []
+    tool_input = {'answer_status': 'answered', 'label': 'partial',
+                  'reason': 'Correct formula, but describes k as "the number of retrievers".'}
+    reply = _Response(200, {'content': [{'type': 'tool_use', 'name': 'record_judgement', 'input': tool_input}],
+                            'stop_reason': 'tool_use', 'usage': {'input_tokens': 500, 'output_tokens': 40}})
+    monkeypatch.setitem(judge.os.environ, 'TEST_JUDGE_KEY', 'sk-test')
+    monkeypatch.setattr(judge.requests, 'post', lambda url, headers, json, timeout: sent.append(json) or reply)
+    text, tin, tout = call_judge({**CFG, 'thinking': 'disabled'}, 'S', 'U', judgement_schema('rubric_v2'))
+    assert parse_judgement(text, 'rubric_v2')['reason'] == tool_input['reason']
+    assert (tin, tout) == (500, 40)
+    body = sent[0]
+    assert body['tool_choice'] == {'type': 'tool', 'name': 'record_judgement'}
+    schema = body['tools'][0]['input_schema']
+    assert schema['properties']['label']['enum'] == ['incorrect', 'partial', 'correct']
+    assert set(schema['required']) == {'answer_status', 'label', 'reason'}
+
+
+def test_basic_schema_only_asks_for_the_label():
+    assert judgement_schema('basic')['required'] == ['label']
+
+
+def test_rubric_v2_is_a_separate_version_with_its_own_cache_entries():
+    assert 'rubric' in JUDGE_PROMPTS and 'rubric_v2' in JUDGE_PROMPTS
+    assert cache_key(CFG, 'rubric', 'Q', 'R', 'A') != cache_key(CFG, 'rubric_v2', 'Q', 'R', 'A')
+    out = parse_judgement('{"answer_status": "hedged", "label": "partial", "reason": "r"}', 'rubric_v2')
+    assert out['answer_status'] == 'hedged'

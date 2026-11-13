@@ -206,7 +206,8 @@ Human labelling does not scale to larger benchmarks, so an LLM judge is being ca
 **Protocol**
 
 - **Question-level split.** The 16 questions are split 8/8 into dev and test ([`data/judge_split.json`](data/judge_split.json), created once by [`scripts/make_judge_split.py`](scripts/make_judge_split.py), stratified by how well each question was answered). Both `top_k` runs of a question stay on the same side, so nothing about a test question leaks into prompt design.
-- **Two prompt versions** ([`src/judge.py`](src/judge.py)): `basic` asks only for correct / partial / incorrect; `rubric` gives the judge the same three-level rubric the human evaluator used and also asks whether the answer was *answered*, *hedged* or *refused*.
+- **Prompt versions** ([`src/judge.py`](src/judge.py)): `basic` asks only for correct / partial / incorrect; `rubric` gives the judge the same three-level rubric the human evaluator used and also asks whether the answer was *answered*, *hedged* or *refused*; `rubric_v2` revises the rubric after error analysis on the dev split (the reference's key point must be stated, not merely implied; hedging includes explicit uncertainty). Every version is kept, so each dev iteration stays reproducible.
+- **Well-formed replies.** With the Anthropic API the judge answers through a forced tool call whose schema allows only the defined labels, so replies cannot be malformed. Thinking is disabled for the judge: Claude Haiku 5.5 thinks by default, and thinking tokens count toward `max_tokens`, which left some early replies empty.
 - **Dev for design, test once.** Prompts are adjusted on the dev split only. The final version is evaluated once on test; the runner refuses the test split without `--confirm-test`.
 - **Judge model.** `claude-haiku-5-5` via the Anthropic API, a different model family from the Llama 3.2 3B generator. The judge sees the question, the reference answer and the generated answer, and treats the answer as untrusted data.
 - **Agreement metrics** ([`src/agreement.py`](src/agreement.py)): exact agreement, Cohen's κ, linearly weighted κ (a correct/incorrect confusion counts more than a correct/partial one), macro-F1 with the human labels as reference, a confusion matrix, and 95% confidence intervals from a question-level bootstrap (answers to the same question are correlated, so questions are resampled).
@@ -216,8 +217,8 @@ Human labelling does not scale to larger benchmarks, so an LLM judge is being ca
 export ANTHROPIC_API_KEY=...           # set in the shell only; never commit keys
 python -m experiments.run_judge --dry-run                         # one prompt + cost estimate, no API calls
 python -m experiments.run_judge --split dev --version basic
-python -m experiments.run_judge --split dev --version rubric
-python -m experiments.run_judge --split test --version rubric --confirm-test
+python -m experiments.run_judge --split dev --version rubric_v2
+python -m experiments.run_judge --split test --version rubric_v2 --confirm-test   # once, with the final version
 ```
 
 Results will be added here once the calibration has been run.
