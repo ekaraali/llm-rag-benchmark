@@ -1,0 +1,83 @@
+top_k,pipeline,question_id,question,reference,answer,human,judge,answer_status,reason,error
+3,direct,1,What problem can 256-token chunks cause?,fragment multi-paragraph evidence,"From general knowledge, I'm aware that 256-token chunks can cause issues with language models and AI systems due to the limitations of their training data and algorithms. Specifically, this chunk size is often considered too large for many modern language models, leading to problems such as:
+
+* Inefficient processing
+* Reduced model performance
+* Increased risk of overfitting
+
+However, I'm not certain about the exact nature or severity of these issues without more specific information on the context and implementation.",incorrect,incorrect,,,
+3,direct,2,What is a common starting percentage for chunk overlap?,10 to 20 percent,"I'm not aware of a specific standard or common practice for ""chunk overlap"" in general knowledge. Could you provide more context or clarify what you mean by ""chunk overlap""? I'd be happy to try and help if I can!",incorrect,incorrect,,,
+3,direct,3,What formula does reciprocal rank fusion use?,1/(k + rank),I'm unsure about the specific formula used by Reciprocal Rank Fusion (RRF). I don't have enough information to provide a correct answer.,incorrect,incorrect,,,
+3,direct,6,How does faithfulness differ from answer correctness?,supplied evidence,"Faithfulness and answer correctness are related but distinct concepts.
+
+Faithfulness refers to the accuracy or reliability of a source, such as a person's testimony or a document's authenticity. It implies that the information provided is trustworthy and can be relied upon.
+
+Answer correctness, on the other hand, refers specifically to whether an individual's response or answer is correct or incorrect in terms of its factual accuracy or truth value.
+
+While faithfulness is essential for maintaining trust and credibility, answer correctness is a more specific aspect of that faithfulness.",incorrect,incorrect,,,
+3,direct,7,What does temperature affect during token sampling?,randomness,I'm unsure about the specific effect of temperature on token sampling.,incorrect,incorrect,,,
+3,direct,8,What does top-p constrain?,cumulative probability,"Top-k constraint typically refers to a constraint in machine learning and optimization problems, particularly in the context of ranking or selection algorithms. It constrains the model to return only the top k results or solutions, rather than all possible options.",incorrect,incorrect,,,
+3,direct,11,What is the purpose of MLflow experiment tracking?,"configurations, metrics, code versions, and artifacts","The primary purpose of MLflow experiment tracking is to monitor and manage the lifecycle of machine learning experiments, allowing users to track experiment runs, parameters, metrics, and results in a centralized location. This enables data scientists and engineers to reproduce, compare, and optimize their experiments more efficiently.",correct,partial,,,
+3,direct,14,What is the tradeoff from adding a reranker?,adding compute and latency,"From general knowledge, adding a reranker to a model typically involves re-ranking the output of another model (often a base model) based on its confidence scores or other metrics. The tradeoff is that it can:
+
+1. Improve performance by selecting the most confident predictions.
+2. Increase computational cost and training time due to additional processing steps.
+
+However, I am unsure about the exact nature of this tradeoff without more specific context.",partial,correct,,,
+3,dense_rag,1,What problem can 256-token chunks cause?,fragment multi-paragraph evidence,"Insufficient evidence. The source excerpts do not explicitly state what problem 256-token chunks can cause. They only discuss the pros and cons of using different chunk sizes, but do not provide information on potential issues or problems associated with 256-token chunks specifically.",incorrect,incorrect,,,
+3,dense_rag,2,What is a common starting percentage for chunk overlap?,10 to 20 percent,A common starting overlap is 10 to 20 percent of chunk size. [chunking.md],correct,correct,,,
+3,dense_rag,3,What formula does reciprocal rank fusion use?,1/(k + rank),"The formula used by Reciprocal Rank Fusion (RRF) is 1/(k + rank), where k is the number of retrievers and rank is the position of the candidate document in the ranked list. [rrf.md]",partial,partial,,,
+3,dense_rag,6,How does faithfulness differ from answer correctness?,supplied evidence,"Faithfulness checks whether generated claims agree with supplied evidence, while answer correctness checks agreement with a reference answer. These are not interchangeable metrics. [hallucination.md]",correct,correct,,,
+3,dense_rag,7,What does temperature affect during token sampling?,randomness,Temperature scales the logits before sampling.,partial,partial,,,
+3,dense_rag,8,What does top-p constrain?,cumulative probability,Top-p nucleus sampling restricts generation to a dynamically selected set of tokens whose cumulative probability reaches p.,correct,correct,,,
+3,dense_rag,11,What is the purpose of MLflow experiment tracking?,"configurations, metrics, code versions, and artifacts","According to [mlops.md], the purpose of MLflow experiment tracking is ""Experiment tracking records configurations, metrics, code versions, and artifacts for reproducibility.""",correct,correct,,,
+3,dense_rag,14,What is the tradeoff from adding a reranker?,adding compute and latency,"Insufficient evidence. The source excerpts do not explicitly state the tradeoff of adding a reranker. However, they mention that ""Reranking can increase retrieval quality while adding compute and latency"" [evaluation.md]. This suggests that there may be a tradeoff between increased retrieval quality and added latency, but it does not provide a clear answer to the question.",partial,correct,,,
+3,hybrid_reasoning_rag,1,What problem can 256-token chunks cause?,fragment multi-paragraph evidence,"Insufficient evidence. The source excerpts do not explicitly state what problem 256-token chunks can cause. They only discuss the pros and cons of using different chunk sizes, but do not provide information on potential issues with 256-token chunks specifically.",incorrect,incorrect,,,
+3,hybrid_reasoning_rag,2,What is a common starting percentage for chunk overlap?,10 to 20 percent,A common starting overlap is 10 to 20 percent of chunk size. [chunking.md],correct,correct,,,
+3,hybrid_reasoning_rag,3,What formula does reciprocal rank fusion use?,1/(k + rank),"The formula used by Reciprocal Rank Fusion (RRF) is 1/(k + rank), where k is the number of retrievers and rank is the position of the candidate document in the ranked list. [rrf.md]",partial,partial,,,
+3,hybrid_reasoning_rag,6,How does faithfulness differ from answer correctness?,supplied evidence,"Faithfulness checks agreement with supplied evidence, while answer correctness checks agreement with a reference answer. These are not interchangeable metrics. [hallucination.md]",correct,correct,,,
+3,hybrid_reasoning_rag,7,What does temperature affect during token sampling?,randomness,Temperature scales the logits before sampling.,partial,partial,,,
+3,hybrid_reasoning_rag,8,What does top-p constrain?,cumulative probability,Top-p nucleus sampling restricts generation to a dynamically selected set of tokens whose cumulative probability reaches p.,correct,correct,,,
+3,hybrid_reasoning_rag,11,What is the purpose of MLflow experiment tracking?,"configurations, metrics, code versions, and artifacts","According to [mlops.md], MLflow's purpose for experiment tracking is ""Experiment tracking records configurations, metrics, code versions, and artifacts for reproducibility.""",correct,correct,,,
+3,hybrid_reasoning_rag,14,What is the tradeoff from adding a reranker?,adding compute and latency,"Insufficient evidence. The provided excerpts do not directly address the tradeoff from adding a reranker. However, they mention that ""Reranking can increase retrieval quality while adding compute and latency"" ([latency.md]). This suggests that adding a reranker may improve retrieval quality but also increases computational cost and latency.",partial,correct,,,
+5,direct,1,What problem can 256-token chunks cause?,fragment multi-paragraph evidence,"From general knowledge, I'm aware that 256-token chunks can cause issues with language models and AI systems due to the limitations of their training data and algorithms. Specifically, this chunk size is often considered too large for many modern language models, leading to problems such as:
+
+* Inefficient processing
+* Reduced model performance
+* Increased risk of overfitting
+
+However, I'm not certain about the exact nature or severity of these issues without more specific information on the context and implementation.",incorrect,incorrect,,,
+5,direct,2,What is a common starting percentage for chunk overlap?,10 to 20 percent,"I'm not aware of a specific standard or common practice for ""chunk overlap"" in general knowledge. Could you provide more context or clarify what you mean by ""chunk overlap""? I'd be happy to try and help if I can!",incorrect,incorrect,,,
+5,direct,3,What formula does reciprocal rank fusion use?,1/(k + rank),I'm unsure about the specific formula used by Reciprocal Rank Fusion (RRF). I don't have enough information to provide a correct answer.,incorrect,incorrect,,,
+5,direct,6,How does faithfulness differ from answer correctness?,supplied evidence,"Faithfulness and answer correctness are related but distinct concepts.
+
+Faithfulness refers to the accuracy or reliability of a source, such as a person's testimony or a document's authenticity. It implies that the information provided is trustworthy and can be relied upon.
+
+Answer correctness, on the other hand, refers specifically to whether an individual's response or answer is correct or incorrect in terms of its factual accuracy or truth value.
+
+While faithfulness is essential for maintaining trust and credibility, answer correctness is a more specific aspect of that faithfulness.",incorrect,incorrect,,,
+5,direct,7,What does temperature affect during token sampling?,randomness,I'm unsure about the specific effect of temperature on token sampling.,incorrect,incorrect,,,
+5,direct,8,What does top-p constrain?,cumulative probability,"Top-k constraint typically refers to a constraint in machine learning and optimization problems, particularly in the context of ranking or selection algorithms. It constrains the model to return only the top k results or solutions, rather than all possible options.",incorrect,incorrect,,,
+5,direct,11,What is the purpose of MLflow experiment tracking?,"configurations, metrics, code versions, and artifacts","The primary purpose of MLflow experiment tracking is to monitor and manage the lifecycle of machine learning experiments, allowing users to track experiment runs, parameters, metrics, and results in a centralized location. This enables data scientists and engineers to reproduce, compare, and optimize their experiments more efficiently.",correct,partial,,,
+5,direct,14,What is the tradeoff from adding a reranker?,adding compute and latency,"From general knowledge, adding a reranker to a model typically involves re-ranking the output of another model (often a base model) based on its confidence scores or other metrics. The tradeoff is that it can:
+
+1. Improve performance by selecting the most confident predictions.
+2. Increase computational cost and training time due to additional processing steps.
+
+However, I am unsure about the exact nature of this tradeoff without more specific context.",partial,correct,,,
+5,dense_rag,1,What problem can 256-token chunks cause?,fragment multi-paragraph evidence,"Insufficient evidence. The provided excerpts do not mention a specific problem caused by 256-token chunks, only their potential benefits (isolate facts) and drawbacks (fragment multi-paragraph evidence).",partial,partial,,,
+5,dense_rag,2,What is a common starting percentage for chunk overlap?,10 to 20 percent,10 to 20 percent of chunk size. [chunking.md],correct,correct,,,
+5,dense_rag,3,What formula does reciprocal rank fusion use?,1/(k + rank),"The formula used by Reciprocal Rank Fusion (RRF) is 1/(k + rank), where k is the position of the document in the ranked list and rank is the position of the document within that list. [rrf.md]",partial,partial,,,
+5,dense_rag,6,How does faithfulness differ from answer correctness?,supplied evidence,"Faithfulness checks whether generated claims agree with supplied evidence, while answer correctness checks agreement with a reference answer. These are not interchangeable metrics. [hallucination.md]",correct,correct,,,
+5,dense_rag,7,What does temperature affect during token sampling?,randomness,Temperature scales the logits before sampling. [sampling.md],partial,partial,,,
+5,dense_rag,8,What does top-p constrain?,cumulative probability,Top-p nucleus sampling restricts generation to a dynamically selected set of tokens whose cumulative probability reaches p.,correct,correct,,,
+5,dense_rag,11,What is the purpose of MLflow experiment tracking?,"configurations, metrics, code versions, and artifacts","According to [mlops.md], MLflow can track experiment runs and log artifacts for reproducibility in LLMOps (Large Language Model Ops) and production.",partial,partial,,,
+5,dense_rag,14,What is the tradeoff from adding a reranker?,adding compute and latency,"Adding a reranker increases retrieval quality, but also adds compute and latency.",correct,correct,,,
+5,hybrid_reasoning_rag,1,What problem can 256-token chunks cause?,fragment multi-paragraph evidence,"Insufficient evidence. The provided excerpts do not mention a specific problem caused by 256-token chunks, only their potential benefits (isolate facts) and drawbacks (fragment multi-paragraph evidence).",partial,partial,,,
+5,hybrid_reasoning_rag,2,What is a common starting percentage for chunk overlap?,10 to 20 percent,10 to 20 percent of chunk size. [chunking.md],correct,correct,,,
+5,hybrid_reasoning_rag,3,What formula does reciprocal rank fusion use?,1/(k + rank),"The formula used by Reciprocal Rank Fusion (RRF) is 1/(k + rank), where k is the number of retrievers and rank is the position of the candidate document in the ranked list. [rrf.md]",partial,partial,,,
+5,hybrid_reasoning_rag,6,How does faithfulness differ from answer correctness?,supplied evidence,"Faithfulness checks whether generated claims agree with supplied evidence, while answer correctness checks agreement with a reference answer. These are not interchangeable metrics. [hallucination.md]",correct,correct,,,
+5,hybrid_reasoning_rag,7,What does temperature affect during token sampling?,randomness,Temperature scales the logits before sampling. [sampling.md],partial,partial,,,
+5,hybrid_reasoning_rag,8,What does top-p constrain?,cumulative probability,Top-p nucleus sampling restricts generation to a dynamically selected set of tokens whose cumulative probability reaches p.,correct,correct,,,
+5,hybrid_reasoning_rag,11,What is the purpose of MLflow experiment tracking?,"configurations, metrics, code versions, and artifacts","According to [mlops.md], MLflow can track experiment runs and log artifacts for reproducibility in LLMOps and production.",partial,partial,,,
+5,hybrid_reasoning_rag,14,What is the tradeoff from adding a reranker?,adding compute and latency,"Insufficient evidence. The provided excerpts do not directly state the tradeoff from adding a reranker. However, they mention that ""Reranking can increase retrieval quality while adding compute and latency"" ([rrf.md]). This suggests that there is an additional cost (compute and latency) associated with using a reranker to improve retrieval quality.",partial,correct,,,

@@ -1,0 +1,42 @@
+{
+  "split": "dev",
+  "prompt_version": "basic",
+  "provider": "anthropic",
+  "model": "claude-haiku-5-5",
+  "thinking": "disabled",
+  "new_input_tokens": 7126,
+  "new_output_tokens": 324,
+  "estimated_cost_usd": 0.0009,
+  "n": 48,
+  "parse_errors": 0,
+  "questions": 8,
+  "accuracy": 0.8541666666666666,
+  "cohen_kappa": 0.7803921568627451,
+  "cohen_kappa_ci95": [
+    0.44262295081967207,
+    1.0
+  ],
+  "weighted_kappa": 0.8359375,
+  "weighted_kappa_ci95": [
+    0.5622317596566524,
+    1.0
+  ],
+  "macro_f1": 0.8616681197326358,
+  "confusion_matrix": [
+    [
+      14,
+      0,
+      0
+    ],
+    [
+      0,
+      12,
+      5
+    ],
+    [
+      0,
+      2,
+      15
+    ]
+  ]
+}

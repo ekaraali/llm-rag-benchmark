@@ -199,7 +199,7 @@ python -m experiments.check_regression --update-baselines  # accept the current 
 
 After `--update-baselines`, commit `evals/baselines.json` on its own and state in the commit message why the values changed, so every change to the quality bar is visible in the history.
 
-## LLM-as-a-judge calibration (in progress)
+## LLM-as-a-judge calibration
 
 Human labelling does not scale to larger benchmarks, so an LLM judge is being calibrated against the 96 human-validated v0.1 labels before it is used to score new runs.
 
@@ -221,7 +221,45 @@ python -m experiments.run_judge --split dev --version rubric_v2
 python -m experiments.run_judge --split test --version rubric_v2 --confirm-test   # once, with the final version
 ```
 
-Results will be added here once the calibration has been run.
+### Results
+
+Judge `claude-haiku-5-5` (thinking disabled, forced tool-call output) against the human labels. Each split has 48 answers from 8 questions; 95% confidence intervals come from a question-level bootstrap.
+
+**Prompt development on the dev split**
+
+| Version | Parsed replies | Exact agreement | Cohen's κ | Weighted κ | Disagreements |
+|---|---:|---:|---:|---:|---:|
+| `basic` | 48/48 | 0.854 | 0.780 (0.44–1.00) | 0.836 (0.56–1.00) | 7 |
+| `rubric` | 44/48 | 0.864 | 0.793 | 0.852 | 6 |
+| `rubric_v2` | 48/48 | 0.917 | 0.875 (0.68–1.00) | 0.905 (0.76–1.00) | 4 |
+
+`rubric` is shown for completeness only: four free-text JSON replies could not be parsed (reasons containing quotes), so its numbers cover 44 answers and are not comparable. This led to the forced tool-call output. `rubric_v2` then fixed two error patterns seen on dev: accepting a related mechanism as the answer ("temperature scales the logits" for *randomness*) and labelling hedged answers as correct.
+
+**Held-out test split** (`rubric_v2`, frozen before the test run, evaluated once)
+
+| Metric | Value | 95% CI |
+|---|---:|---:|
+| Exact agreement | 0.958 (46/48) | |
+| Cohen's κ | 0.938 | 0.805–1.000 |
+| Weighted κ (linear) | 0.954 | 0.843–1.000 |
+| Macro-F1 (human labels as reference) | 0.957 | |
+
+| human \ judge | incorrect | partial | correct |
+|---|---:|---:|---:|
+| incorrect | 15 | 2 | 0 |
+| partial | 0 | 14 | 0 |
+| correct | 0 | 0 | 17 |
+
+**Reading the results**
+
+- Across 96 judged answers, the judge never confused *correct* with *incorrect*; every disagreement was between adjacent labels.
+- The test score is higher than the dev score. With 8 questions per split the confidence intervals overlap widely, so this is sampling variation, not evidence that the judge works better on unseen questions.
+- The two test disagreements (Q15, `top_k=3`) are borderline: the answer says the source "does not explicitly state that this guarantees reproducibility" without saying it is *not* guaranteed. The human label is *incorrect*, the judge says *partial*.
+- On dev, Q11 (direct pipeline) stays a disagreement under every prompt version: the reference lists four items and the answer names two. The judge consistently says *partial*, the human label is *correct*; this reflects how complete a reference must be, not a parsing or prompt error.
+- The judge also classifies answer status, which the string-based abstention marker cannot: on the test split it labels 15 of 32 RAG answers *hedged* and 4 *refused*.
+- Limits: one human annotator, 16 questions, one judge model. Agreement this high on this small, closely related corpus does not show that the judge generalises to harder questions; it will be re-checked against new human labels when the benchmark grows.
+
+Full reports, per-answer judgements and summaries for every run are in [`reports/v0.2/judge/`](reports/v0.2/judge/). The whole calibration cost about $0.02 in API usage.
 
 ## Reproduce locally
 
@@ -293,7 +331,7 @@ Dockerfile                  # portable execution environment
 
 1. **v0.2:** BM25, renamed pipelines, evidence-level schema and retrieval metrics.
 2. **Evaluation regression in CI:** retrieval baselines and frozen-answer metric checks on every push.
-3. **LLM-as-a-judge (in progress):** calibrate an automated judge against the human labels with a question-level dev/test split (Cohen's κ, macro-F1, confusion matrix), separating answered, hedged and refused responses.
+3. **LLM-as-a-judge (done):** calibrate an automated judge against the human labels with a question-level dev/test split (Cohen's κ, macro-F1, confusion matrix), separating answered, hedged and refused responses.
 4. **Answer-quality regression:** a manual or scheduled workflow that generates answers for a golden question set, scores them with the judge and alerts when quality drops.
 5. **Harder benchmark:** 50–100 questions with similar distractor documents, multi-hop and unanswerable questions; retrieval baselines updated accordingly.
 6. **Cross-encoder reranking** as a separate pipeline.
